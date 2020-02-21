@@ -1,8 +1,10 @@
 name: image-classification
 functions:
   # Yaml by local reference
-  - url: utils.yaml
+  - url: ./yaml/utils.yaml
     name: utils
+  - url: ./yaml/trainer.yaml
+    name: trainer
   # Yaml by github URL
   - url: https://raw.githubusercontent
   - .com/mlrun/demo-image-classification/master/notebooks/nuclio-serving-tf
