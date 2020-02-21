@@ -1,0 +1,14 @@
+kind: mpijob
+metadata:
+  name: horovod-trainer
+  hash: 44fce42bde2817288b3f798932d7b86cce792232
+  project: default
+spec:
+  command: ../py/horovod-training.py
+  args: []
+  image: mlrun/mpijob:latest
+  description: ''
+  replicas: 4
+  image_pull_policy: Always
+  build:
+    commands: []
