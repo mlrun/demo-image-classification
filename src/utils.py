@@ -1,7 +1,7 @@
+import json
 import os
 import zipfile
-import json
-from tempfile import mktemp
+
 import pandas as pd
 
 

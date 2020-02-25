@@ -4,7 +4,7 @@ metadata:
   hash: 44fce42bde2817288b3f798932d7b86cce792232
   project: default
 spec:
-  command: ../py/horovod-training.py
+  command: ../src/horovod-training.src
   args: []
   image: mlrun/mpijob:latest
   description: ''
