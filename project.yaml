@@ -11,4 +11,4 @@ functions:
   - -images.ipynb
     name: serving
 workflows:
-  main: ./py/workflow.py
+  main: ./src/workflow.src

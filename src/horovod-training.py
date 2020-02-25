@@ -1,46 +1,43 @@
 from __future__ import print_function
-import os
-import sys
-import json
-import keras
-from keras.applications.vgg16 import VGG16
-from keras.datasets import mnist
-from keras.models import Model
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, \
-    Activation, BatchNormalization
-from keras.preprocessing.image import ImageDataGenerator
-from keras import backend as K
-import tensorflow as tf
-import horovod.keras as hvd
-import pandas as pd
-from sklearn.model_selection import train_test_split
-import io
 
+import os
+
+import horovod.keras as hvd
+import keras
+import pandas as pd
+import tensorflow as tf
+from keras import backend as K
+from keras.applications.vgg16 import VGG16
+from keras.layers import Flatten, Dense
+from keras.models import Model
+from keras.preprocessing.image import ImageDataGenerator
 from mlrun import get_or_create_ctx
 from mlrun.artifacts import ChartArtifact
+from sklearn.model_selection import train_test_split
 
 # Acquire MLRun context
 mlctx = get_or_create_ctx('horovod-trainer')
 
 # Get env variables
 mlctx.logger.info('Getting env variables')
-DATA_PATH = mlctx.get_param('data_path') #, '/User/horovod-trainer/data/cats_n_dogs')
-MODEL_PATH = mlctx.get_param('model_path', '/tmp/models/model.hd5')#, '/User/horovod-trainer/models/catsndogs.hd5')
-CHECKPOINTS_DIR = mlctx.get_param('checkpoints_dir')#, '/User/horovod--trainer/checkpoints')
+DATA_PATH = mlctx.get_param(
+    'data_path')  # , '/User/horovod-trainer/data/cats_n_dogs')
+MODEL_PATH = mlctx.get_param('model_path',
+                             '/tmp/models/model.hd5')  # , '/User/horovod-trainer/models/catsndogs.hd5')
+CHECKPOINTS_DIR = mlctx.get_param(
+    'checkpoints_dir')  # , '/User/horovod--trainer/checkpoints')
 use_gpu = mlctx.get_param('use_gpu', True)
 
-mlctx.logger.info(f'Validating paths:\n'\
-                  f'Data_path:\t{DATA_PATH}\n'\
+mlctx.logger.info(f'Validating paths:\n' \
+                  f'Data_path:\t{DATA_PATH}\n' \
                   f'Model_path:\t{MODEL_PATH}\n')
-#os.makedirs(DATA_PATH, exist_ok=True)
+# os.makedirs(DATA_PATH, exist_ok=True)
 os.makedirs(CHECKPOINTS_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-
 
 categories_map = str(mlctx.get_input('categories_map').get())
 mlctx.logger.info(f'Categories map: {categories_map}')
 df = pd.read_csv(str(mlctx.get_input('file_categories')))
-
 
 mlctx.logger.info(f'Got {df.shape[0]} files in {DATA_PATH}')
 mlctx.logger.info(f'Training data has {df.size} samples')
@@ -64,7 +61,6 @@ if tf.test.gpu_device_name():
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 mlctx.logger.info(f'Is GPU available?\t{is_gpu_available}')
 
-
 #
 # Training
 #
@@ -79,7 +75,6 @@ validate_df['category'] = validate_df['category'].astype('str');
 total_train = train_df.shape[0]
 total_validate = validate_df.shape[0]
 
-
 # Horovod: initialize Horovod.
 hvd.init()
 
@@ -91,7 +86,8 @@ if is_gpu_available:
 K.set_session(tf.Session(config=config))
 
 # load model
-model = VGG16(include_top=False, input_shape=(IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS))
+model = VGG16(include_top=False,
+              input_shape=(IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS))
 
 # mark loaded layers as not trainable
 for layer in model.layers:
@@ -191,31 +187,33 @@ history = model.fit_generator(
 
 # save the model only on worker 0 to prevent failures ("cannot lock file")
 if hvd.rank() == 0:
-    
+
     MODEL_DIR = os.path.dirname(MODEL_PATH)
-    
+
     # log the epoch advancement
     mlctx.logger.info(f'history: {history.history}')
-    
+
     # Save the model file
     model.save(MODEL_PATH)
-    mlctx.log_artifact('model', src_path=MODEL_PATH, labels={'framework': 'tensorflow'})
-    
+    mlctx.log_artifact('model', src_path=MODEL_PATH,
+                       labels={'framework': 'tensorflow'})
+
     # Save architecture and weights 
     with open(os.path.join(MODEL_DIR, 'model-architecture.json'), 'w') as f:
         f.write(model.to_json())
     model.save_weights(os.path.join(MODEL_DIR, 'model-weights.h5'))
-    
+
     # Produce training chart artifact
     chart = ChartArtifact('summary.html')
     chart.header = ['epoch', 'accuracy', 'val_accuracy', 'loss', 'val_loss']
     for i in range(epochs):
-        chart.add_row([i+1, history.history['accuracy'][i], 
-                       history.history['val_accuracy'][i], 
-                       history.history['loss'][i], 
+        chart.add_row([i + 1, history.history['accuracy'][i],
+                       history.history['val_accuracy'][i],
+                       history.history['loss'][i],
                        history.history['val_loss'][i]])
-    mlctx.log_artifact(chart, target_path=os.path.join(MODEL_DIR, 'training-summary.html'))
-    
+    mlctx.log_artifact(chart, target_path=os.path.join(MODEL_DIR,
+                                                       'training-summary.html'))
+
     # Log results
-    mlctx.log_result('loss', float(history.history['loss'][epochs-1]))
-    mlctx.log_result('accuracy', float(history.history['accuracy'][epochs-1]))
+    mlctx.log_result('loss', float(history.history['loss'][epochs - 1]))
+    mlctx.log_result('accuracy', float(history.history['accuracy'][epochs - 1]))
