@@ -57,7 +57,7 @@ batch_size = mlctx.get_param('batch_size', 64)
 is_gpu_available = False
 if tf.test.gpu_device_name():
     is_gpu_available = True
-    if !use_gpu:
+    if not use_gpu:
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 mlctx.logger.info(f'Is GPU available?\t{is_gpu_available}')
 
@@ -195,7 +195,7 @@ if hvd.rank() == 0:
 
     # Save the model file
     model.save(MODEL_PATH)
-    mlctx.log_artifact('model', src_path=MODEL_PATH,
+    mlctx.log_artifact('model', local_path=MODEL_PATH,
                        labels={'framework': 'tensorflow'})
 
     # Save architecture and weights 
@@ -211,8 +211,7 @@ if hvd.rank() == 0:
                        history.history['val_accuracy'][i],
                        history.history['loss'][i],
                        history.history['val_loss'][i]])
-    mlctx.log_artifact(chart, target_path=os.path.join(MODEL_DIR,
-                                                       'training-summary.html'))
+    mlctx.log_artifact(chart, local_path='training-summary.html', artifact_path=MODEL_DIR)
 
     # Log results
     mlctx.log_result('loss', float(history.history['loss'][epochs - 1]))

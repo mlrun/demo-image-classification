@@ -6,9 +6,9 @@ functions:
   - url: ./yaml/trainer.yaml
     name: trainer
   # Yaml by github URL
-  - url: https://raw.githubusercontent
-  - .com/mlrun/demo-image-classification/master/notebooks/nuclio-serving-tf
-  - -images.ipynb
+  - url: notebooks/nuclio-serving-tf-images.ipynb
     name: serving
+    kind: nuclio:serving
 workflows:
-  main: ./src/workflow.src
+  - name: main
+    code: src/workflow.py

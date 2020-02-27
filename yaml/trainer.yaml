@@ -1,12 +1,20 @@
 kind: mpijob
 metadata:
   name: horovod-trainer
-  hash: 44fce42bde2817288b3f798932d7b86cce792232
+  tag: latest
+  hash: ca9b2f2453afddcb69c1cc7360687249062abb96
   project: default
 spec:
-  command: ../src/horovod-training.src
+  command: /User/demo-image-classification/src/horovod-training.py
   args: []
   image: mlrun/mpijob:latest
+  env:
+  - name: V3IO_API
+    value: ''
+  - name: V3IO_USERNAME
+    value: ''
+  - name: V3IO_ACCESS_KEY
+    value: ''
   description: ''
   replicas: 4
   image_pull_policy: Always

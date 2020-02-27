@@ -1,7 +1,6 @@
 from kfp import dsl
 from mlrun import mount_v3io
 
-artifcats_path = './'
 funcs = {}
 
 
@@ -23,6 +22,11 @@ def init_functions(functions: dict, params=None, secrets=None):
     '''
     for f in functions.values():
         f.apply(mount_v3io())
+        
+    functions['serving'].set_env('MODEL_CLASS', 'TFModel')
+    functions['serving'].set_env('IMAGE_HEIGHT', '128')
+    functions['serving'].set_env('IMAGE_WIDTH', '128')
+    functions['serving'].set_env('ENABLE_EXPLAINER', 'False')
 
 
 @dsl.pipeline(
@@ -42,6 +46,7 @@ def kfpipeline(
     open_archive = funcs['utils'].as_step(name='download',
                                           handler='open_archive',
                                           out_path=images_path,
+                                          image=builder_utils.outputs['image'],
                                           params={'target_dir': images_path},
                                           inputs={'archive_url': image_archive},
                                           outputs=['content']).apply(
@@ -50,24 +55,24 @@ def kfpipeline(
     label = funcs['utils'].as_step(name='label',
                                    handler='categories_map_builder',
                                    out_path=images_path,
+                                   image=builder_utils.outputs['image'],
                                    params={'source_dir': source_dir},
                                    outputs=['categories_map',
                                             'file_categories']).after(
         open_archive)
 
     train = funcs['trainer'].as_step(name='train',
-                                     params={'epochs': 3,
+                                     params={'epochs': 1,
                                              'checkpoints_dir': checkpoints_dir,
                                              'model_path': model_path,
                                              'data_path': source_dir},
-                                     inputs={'categories_map': label.outputs[
-                                         'categories_map'],
-                                             'file_categories': label.outputs[
-                                                 'file_categories']},
+                                     inputs={
+                                         'categories_map': label.outputs['categories_map'],
+                                         'file_categories': label.outputs['file_categories']},
                                      outputs=['model'])
+    train.container.set_image_pull_policy('Always')
 
     # deploy the model using nuclio functions
     deploy = funcs['serving'].deploy_step(project='nuclio-serving',
                                           models={
-                                              model_name: train.outputs[
-                                                  'model']})
+                                              model_name: train.outputs['model']})
