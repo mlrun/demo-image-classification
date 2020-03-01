@@ -15,7 +15,10 @@ it consists of 4 MLRun and Nuclio functions and Kubeflow Pipelines Orchastration
 
 The demo is written as an MLRun Project, allowing you to use the [load project](./load_project.ipynb) to run the project through the [main workflow](./src/workflow.py) as specified in the [project.yaml](./project.yaml)
 
-Running the demo
+> The demo applications are tested on the [Iguazio's Data Science PaaS](https://www.iguazio.com/), 
+and use Iguazio's shared data fabric (v3io), and can be modified to work with any shared file storage by replacing the 
+```apply(v3io_mount())``` calls with other KubeFlow volume modifiers (e.g. `apply(mlrun.platforms.mount_pvc())`) . 
+You can request a [free trial of Iguazio PaaS](https://www.iguazio.com/lp/14-day-free-trial-in-the-cloud/).
 
 **Pre-requisites:**
 

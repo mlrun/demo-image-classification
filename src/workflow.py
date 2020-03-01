@@ -12,7 +12,9 @@ def init_functions(functions: dict, params=None, secrets=None):
 
     In this case we will add Iguazio's user mount to our functions using the
     `mount_v3io()` function to automatically set the mount with the needed
-    variables taken from the environment.
+    variables taken from the environment. 
+    * mount_v3io can be replaced with mlrun.platforms.mount_pvc() for 
+    non-iguazio mount
 
     @param functions: <function_name: function_yaml> dict of functions in the
                         workflow
@@ -21,7 +23,8 @@ def init_functions(functions: dict, params=None, secrets=None):
                     such
     '''
     for f in functions.values():
-        f.apply(mount_v3io())
+        f.apply(mount_v3io())                  # On Iguazio (Auto-mount /User)
+        # f.apply(mlrun.platforms.mount_pvc()) # Non-Iguazio mount
         
     functions['serving'].set_env('MODEL_CLASS', 'TFModel')
     functions['serving'].set_env('IMAGE_HEIGHT', '128')
@@ -75,4 +78,5 @@ def kfpipeline(
     # deploy the model using nuclio functions
     deploy = funcs['serving'].deploy_step(project='nuclio-serving',
                                           models={
-                                              model_name: train.outputs['model']})
+                                              model_name: train.outputs['model']}
+                                         )
