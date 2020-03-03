@@ -52,8 +52,7 @@ def kfpipeline(
                                           image=builder_utils.outputs['image'],
                                           params={'target_dir': images_path},
                                           inputs={'archive_url': image_archive},
-                                          outputs=['content']).apply(
-        mount_v3io())
+                                          outputs=['content'])
 
     label = funcs['utils'].as_step(name='label',
                                    handler='categories_map_builder',
