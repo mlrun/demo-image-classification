@@ -42,7 +42,7 @@ You can request a [free trial of Iguazio PaaS](https://www.iguazio.com/lp/14-day
 ## Notebooks & Code
 
 * [All-in-one: Import, tag, launch training, deploy serving](./notebooks/mlrun_mpijob_classify.ipynb) 
-* [Training function code](./py/horovod-training.py)
+* [Training function code](./src/horovod-training.py)
 * [Serving function development and testing](./notebooks/nuclio-serving-tf-images.ipynb)
 * [Auto generation of KubeFlow pipelines workflow](./notebooks/mlrun_mpijob_pipe.ipynb)
 * [Building serving function using Dockerfile](./inference-docker)
