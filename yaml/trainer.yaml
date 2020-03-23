@@ -2,10 +2,11 @@ kind: mpijob
 metadata:
   name: horovod-trainer
   tag: latest
-  hash: ca9b2f2453afddcb69c1cc7360687249062abb96
+  hash: f45c6391606c2c9f12c8a31e2ece057d1ced5aa6
   project: default
+  categories: []
 spec:
-  command: /User/demo-image-classification/src/horovod-training.py
+  command: /User/my-proj/src/horovod-training.py
   args: []
   image: mlrun/mpijob:latest
   env:
